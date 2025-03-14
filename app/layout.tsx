@@ -3,14 +3,20 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
+import { Analytics } from '@vercel/analytics/react'
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "ContentAI - Transform Reddit Stories into Viral TikTok Videos",
+  title: "Tokr",
   description:
     "Automatically scrape, generate, and customize TikTok-ready videos from the best Reddit content. Save hours of editing time.",
-    generator: 'v0.dev'
+  generator: 'v0.dev',
+  icons: {
+    icon: '/tokr-favicon.ico',
+    shortcut: '/tokr-favicon.ico',
+    apple: '/tokr-favicon.ico',
+  }
 }
 
 export default function RootLayout({
@@ -24,6 +30,7 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
           {children}
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   )

@@ -6,6 +6,7 @@ import { ArrowRight } from "lucide-react"
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { Safari } from "./magicui/safari"
+import { WordRotate } from "./magicui/word-rotate"
 
 export default function Hero() {
   const [gradientIndex, setGradientIndex] = useState(0)
@@ -52,8 +53,12 @@ export default function Hero() {
             </span>
             <h1 className="mb-6 text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight">
               Transform Reddit Stories into
-              <div className="text-gradient-multi">
-                <span>Viral Videos</span>
+              <div className="flex items-center gap-5">
+                <span className="text-gradient-multi">Viral </span>
+                <WordRotate 
+                  words={[" Videos", " TikToks", " Reels", " Shorts"]}
+                  className="text-gradient-multi"
+                />
               </div>
             </h1>
             <p className="mb-8 text-xl text-[#B3B3B7] max-w-xl">

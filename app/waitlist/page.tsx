@@ -2,32 +2,75 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ArrowRight, CheckCircle2, ArrowLeft } from "lucide-react"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
+import { createClient } from "@supabase/supabase-js"
+import { Toaster, toast } from "sonner"
 
 export default function WaitlistPage() {
+  console.log("WaitlistPage component rendered")
   const [email, setEmail] = useState("")
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<any>(null)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string
+  const supabase = createClient(supabaseUrl, supabaseKey)
+
+  // Add useEffect to log initial mount
+  useEffect(() => {
+    console.log("WaitlistPage mounted")
+  }, [])
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
 
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false)
-      setSubmitted(true)
-    }, 1500)
+    try {
+      const { data, error: supabaseError } = await supabase.from("waitlist-beta").insert({ email: email })
+      
+      if (supabaseError) {
+        console.error("Error inserting email:", supabaseError)
+        if (supabaseError.code === '23505') {
+          setError(supabaseError)
+          toast.error("This email is already on the waitlist!", {
+            description: "Please use a different email address to join.",
+            duration: 5000,
+          })
+          setSubmitted(true)
+        } else {
+          toast.error("Something went wrong", {
+            description: "Please try again later.",
+            duration: 5000,
+          })
+        }
+      } else {
+        toast.success("Successfully joined the waitlist!", {
+          description: "We'll notify you when we launch.",
+          duration: 5000,
+        })
+        setSubmitted(true)
+      }
+    } catch (err) {
+      console.error("Unexpected error during submission:", err)
+      toast.error("Something went wrong", {
+        description: "Please try again later.",
+        duration: 5000,
+      })
+    }
+    
+    setLoading(false)
   }
 
   return (
     <div className="min-h-screen bg-[#121214] text-white">
+      <Toaster richColors position="top-center" />
       <Header />
       <main className="py-12">
         <div className="container">
@@ -50,9 +93,11 @@ export default function WaitlistPage() {
                     <div className="h-12 w-12 rounded-full bg-[#4ECB71]/20 flex items-center justify-center">
                       <CheckCircle2 className="h-6 w-6 text-[#4ECB71]" />
                     </div>
-                    <h2 className="text-xl font-medium text-white">Thanks for joining our waitlist!</h2>
+                    <h2 className="text-xl font-medium text-white">Thanks for your interest!</h2>
                     <p className="text-[#B3B3B7] text-center max-w-md">
-                      We'll notify you when we launch. In the meantime, keep an eye on your inbox for updates.
+                      {error?.code === '23505' 
+                        ? "You're already on our waitlist! We'll notify you when we launch." 
+                        : "We'll notify you when we launch. In the meantime, keep an eye on your inbox for updates."}
                     </p>
                     <Link href="/">
                       <Button className="mt-2 bg-[#8A2BE2] hover:bg-[#8A2BE2]/90 text-white">Return to Home</Button>

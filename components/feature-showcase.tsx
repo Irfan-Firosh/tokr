@@ -44,7 +44,7 @@ export default function FeatureShowcase() {
   const [isPaused, setIsPaused] = useState(false)
   const [touchStart, setTouchStart] = useState<number | null>(null)
   const [touchEnd, setTouchEnd] = useState<number | null>(null)
-  const [showSwipeHint, setShowSwipeHint] = useState(true)
+  const [showSwipeHint, setShowSwipeHint] = useState(false)
   const [swipeDirection, setSwipeDirection] = useState<string | null>(null)
   const [swipeProgress, setSwipeProgress] = useState(0)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
@@ -228,14 +228,22 @@ export default function FeatureShowcase() {
   // Add back the handleMouseEnter function
   const handleMouseEnter = () => setIsPaused(true)
 
+  const [showSwipeNotification, setShowSwipeNotification] = useState(false);
+
+  useEffect(() => {
+    if (swipeDirection) {
+      setShowSwipeNotification(true);
+      const timer = setTimeout(() => setShowSwipeNotification(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [swipeDirection]);
+
   // Add visual feedback for swipe direction
   const getSwipeStyles = () => {
     if (!swipeDirection) return {}
-    
     const translateValue = swipeDirection === 'left' 
-      ? Math.min(-swipeProgress * 0.1, 0) 
-      : Math.max(-swipeProgress * 0.1, 0)
-    
+      ? Math.min(-swipeProgress * 0.05, 0) 
+      : Math.max(-swipeProgress * 0.05, 0)
     return {
       transform: `translateX(${translateValue}px)`,
       transition: isDragging || touchStart ? 'none' : 'transform 0.3s ease'
@@ -250,6 +258,11 @@ export default function FeatureShowcase() {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
+      {showSwipeNotification && (
+        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 bg-[#24242A] text-white px-4 py-2 rounded shadow-lg mt-4">
+          Swipe to explore more features!
+        </div>
+      )}
       <div className="container max-w-6xl mx-auto px-4">
         <div className="text-center mb-16">
           <span className="inline-block px-4 py-1.5 bg-[#24242A] rounded-full text-sm font-medium text-[#B3B3B7] mb-4">
@@ -304,40 +317,6 @@ export default function FeatureShowcase() {
                 <ChevronRight className="h-6 w-6 text-white" />
               </div>
             </div>
-
-            {/* Navigation Hint Animation - Replace swipe hint with click hint */}
-            {showSwipeHint && (
-              <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/70 pointer-events-none">
-                <div className="text-white text-center px-6 py-8 bg-[#24242A]/80 rounded-xl">
-                  <div className="flex items-center justify-center gap-8">
-                    <motion.div
-                      initial={{ opacity: 0.5 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ 
-                        repeat: Infinity, 
-                        repeatType: "reverse", 
-                        duration: 1.2 
-                      }}
-                    >
-                      <ChevronLeft className="h-8 w-8" />
-                    </motion.div>
-                    <span className="text-xl font-medium">Click to Navigate</span>
-                    <motion.div
-                      initial={{ opacity: 0.5 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ 
-                        repeat: Infinity, 
-                        repeatType: "reverse", 
-                        duration: 1.2 
-                      }}
-                    >
-                      <ChevronRight className="h-8 w-8" />
-                    </motion.div>
-                  </div>
-                  <p className="mt-3 text-base opacity-90">Click left or right to explore features</p>
-                </div>
-              </div>
-            )}
 
             {/* Content without swipe animation */}
             <div>
@@ -639,22 +618,24 @@ export default function FeatureShowcase() {
                               </div>
 
                               <div className="h-40 bg-[#1A1A1C] rounded-lg p-4 flex items-end justify-between">
-                                {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, i) => {
-                                  const heights = [30, 45, 60, 80, 50, 40, 65];
-                                  const engagementHeights = [20, 35, 50, 65, 40, 30, 55];
+                                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => {
+                                  const viewHeights = [45, 65, 85, 95, 75, 55, 80];
+                                  const engagementHeights = [35, 55, 70, 85, 60, 45, 65];
                                   return (
-                                    <div key={`${day}-${i}`} className="flex flex-col items-center gap-1 w-8">
-                                      <div className="w-full flex flex-col items-center gap-1">
-                                        <div
-                                          className="w-2 bg-[#4ECB71] rounded-t-sm"
+                                    <div key={day} className="flex flex-col items-center gap-2">
+                                      <div className="relative w-8 flex flex-col items-center">
+                                        {/* Views Bar */}
+                                        <div 
+                                          className="w-6 bg-[#8A2BE2] hover:bg-[#9B4DFF] transition-colors duration-200 rounded-sm"
+                                          style={{ height: `${viewHeights[i]}%` }}
+                                        />
+                                        {/* Engagement Bar */}
+                                        <div 
+                                          className="absolute bottom-0 w-3 bg-[#4ECB71] hover:bg-[#60E085] transition-colors duration-200 rounded-sm"
                                           style={{ height: `${engagementHeights[i]}%` }}
-                                        ></div>
-                                        <div
-                                          className="w-6 bg-[#8A2BE2] rounded-t-sm"
-                                          style={{ height: `${heights[i]}%` }}
-                                        ></div>
+                                        />
                                       </div>
-                                      <div className="text-xs text-[#B3B3B7] mt-1">{day}</div>
+                                      <span className="text-xs text-[#B3B3B7]">{day.charAt(0)}</span>
                                     </div>
                                   );
                                 })}
